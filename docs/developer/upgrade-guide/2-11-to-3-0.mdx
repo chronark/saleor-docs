@@ -1,0 +1,148 @@
+---
+title: Upgrade Saleor to version 3.0
+---
+
+# Multichannel
+
+- If you update existing instance, "default-channel" will be created.
+- As long, as system has only one channel created, storefront queries do not require adding it as argument
+- When more channels will be created, specyfing channel become mandatory
+- We recommend updating storefront code for explicite channel argument, to prevent issues in the future
+
+To read more about multichannel, check out [developer](developer/channels.mdx) and [dashboard](dashboard/channels.mdx) docs.
+
+Fields moved from product into channel listings:
+- `Product.publicationDate` -> `Product.publicationDate`
+- `Product.isPublished` -> `Product.isPublished`
+- `Product.purchaseCost` -> `Product.purchaseCost`
+- `Product.price` -> `Product.price`
+
+Fields moved from variant to channel listings:
+- `ProductVariant.price` -> ``
+- `ProductVariant.purchaseCost` -> ``
+- `ProductVariant.` -> ``
+
+Fields moved from voucher to channel listings:
+- `Voucher.` -> ``
+
+Fields moved from discount to channel listings:
+- `Discount.` -> ``
+
+# Breaking changes
+
+## Editor.js rich text editor and description fields
+
+All rich text fields now use Editor.js instead of Draft.js. Our database migration should convert old format to the new one, but visual inspection is recommended.
+
+To render blocks on your storefront you can use Editor.js in `read-only` mode, or use [one of libraries](https://github.com/editor-js/awesome-editorjs) recommended by its authors.
+
+Additionally, `description` fields in the API changed type from `String` to `JSONString` in following objects:
+- `Category`
+- `Collection`
+- `Product`
+- `Translation` for previous listed objects 
+
+`Pages` changed `content` field type in the same way.
+
+## Product and Variant Images
+
+3.0 extends possibliities for presenting your products to the customers. Now you can not only use phots, but also the videos. Old `image` attribute and `ProductImage` obects are left for backward compability, but are marked as deprecated. If you want to leverage all new features, use `ProductMedia` objects.
+
+Read documentation for the [product media](developer/products.mdx#media).
+
+## Product filters
+
+[Need help with describing changes how do we filter products now]
+
+Read documentation for the [product filters and sorting](developer/products.mdx#retrieving-a-list-of-products).
+
+## Attributes
+
+Attribute type:
+- `Attribute.values` dropped in favor of `choices`
+
+Attribute input:
+- `value: String`. Use `values` instead
+
+AttributeReorderValues type:
+- `errors: [Error!]!` field changed type to `errors: [AttributeError!]!`
+
+## Invoice
+
+- invoiceSendEmail renamed to invoiceSendNotification
+
+## Permissions
+
+- `MANAGE_SERVICE_ACCOUNTS` removed. Use `MANAGE_APPS` for managing external apps.
+- `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` added. Staff users managing the accounts may need adding this permission
+- `MANAGE_PAGE_TYPES_AND_ATTRIBUTES` added. Staff users managing pages may need adding this permission
+
+## Apps
+
+Service Accounts have been renamed to the Apps.
+
+## AuthorizationKey dropped
+
+Dropped mutations
+- authorizationKeyAdd
+- authorizationKeyDelete
+
+## Webhooks
+
+- `CHECKOUT_QUANTITY_CHANGED` removed. Use `CHECKOUT_UPDATED` instead.
+
+### Order webhooks
+
+Events:
+Added:
+
+- `DRAFT_CREATED_FROM_REPLACE`
+- `ADDED_PRODUCTS`
+- `REMOVED_PRODUCTS`
+- `ORDER_REPLACEMENT_CREATED`
+- `ORDER_DISCOUNT_ADDED`
+- `ORDER_DISCOUNT_AUTOMATICALLY_UPDATED`
+- `ORDER_DISCOUNT_UPDATED`
+- `ORDER_DISCOUNT_DELETED`
+- `ORDER_LINE_DISCOUNT_UPDATED`
+- `ORDER_LINE_DISCOUNT_REMOVED`
+- `ORDER_LINE_PRODUCT_DELETED`
+- `ORDER_LINE_VARIANT_DELETED`
+- `CONFIRMED`
+- `FULFILLMENT_REFUNDED`
+- `FULFILLMENT_RETURNED`
+- `FULFILLMENT_REPLACED`
+
+Removed:
+- `DRAFT_ADDED_PRODUCTS` in favor of `ADDED_PRODUCTS`
+- `DRAFT_REMOVED_PRODUCTS` in favor of `REMOVED_PRODUCTS`
+
+- compare payload of webhooks
+
+
+## Shop
+
+- `Shop.geolocalization` field dropped due to insufficient performance of used plugin.
+- `Shop.homepageCollection` field dropped. Query collection of your choice instead
+- `Shop.navigation` field dropped. Query `menu` instead
+
+## Dropped deprecated fields
+
+- `privateMeta` and `meta` fields. Use `privateMetadata` and `metadata` instead.
+
+AttributeValue type:
+- `type: AttributeValueType` dropped. Use the `inputType` field to determine the type of attribute's value.
+
+# Deprecations
+
+## Error handling
+
+API clients should expect errors in the field `errors`, instead of for example `attributeErrors`:
+
+```graphql
+type AttributeCreate {
+    attribute: Attribute
+    attributeErrors: [AttributeError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
+    errors: [AttributeError!]!
+}
+```

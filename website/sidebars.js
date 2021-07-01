@@ -152,6 +152,13 @@ module.exports = {
       },
       {
         "type": "category",
+        "label": "Upgrade guide",
+        "items": [
+          "developer/upgrade-guide/2-11-to-3-0.mdx",
+        ]
+      },
+      {
+        "type": "category",
         "label": "Community",
         "items": [
           "developer/community/contributing",
